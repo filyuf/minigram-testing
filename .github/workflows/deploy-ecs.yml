@@ -2,8 +2,7 @@ name: Deploy Frontend to AWS ECS
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 env:
   ECR_REGISTRY: 031795911969.dkr.ecr.us-east-1.amazonaws.com
@@ -17,13 +16,11 @@ permissions:
 
 jobs:
   build:
-    name: Build and Push Frontend to ECR
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.set-vars.outputs.image }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -39,10 +36,11 @@ jobs:
       - name: Build Image
         run: |
           docker build \
+            -f ./Dockerfile \
             -t ${{ env.ECR_REPOSITORY }} \
-            -f ./Dockerfile . \
             --build-arg VITE_API_URL=${{ secrets.VITE_API_URL }} \
-            --build-arg VITE_WS_URL=${{ secrets.VITE_WS_URL }}
+            --build-arg VITE_WS_URL=${{ secrets.VITE_WS_URL }} \
+            .
 
       - name: Tag Image
         run: docker tag ${{ env.ECR_REPOSITORY }}:latest ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
@@ -52,16 +50,13 @@ jobs:
 
       - name: Set Variable
         id: set-vars
-        run: |
-          echo "image=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest" >> $GITHUB_OUTPUT
+        run: echo "image=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest" >> $GITHUB_OUTPUT
 
   deploy:
-    name: Deploy Frontend to ECS
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -71,7 +66,10 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Fill in the new image ID in the Amazon ECS task definition
+      - name: Debug image output
+        run: echo "IMAGE=${{ needs.build.outputs.image }}"
+
+      - name: Render task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
