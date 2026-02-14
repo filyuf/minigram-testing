@@ -2,7 +2,8 @@ name: Deploy Frontend to AWS ECS
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 env:
   ECR_REGISTRY: 031795911969.dkr.ecr.us-east-1.amazonaws.com
@@ -16,11 +17,11 @@ permissions:
 
 jobs:
   build:
+    name: Build and Push Frontend to ECR
     runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.set-vars.outputs.image }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -37,26 +38,27 @@ jobs:
         run: |
           docker build \
             -f ./Dockerfile \
-            -t ${{ env.ECR_REPOSITORY }} \
+            -t ${{ env.ECR_REPOSITORY }}:latest \
             --build-arg VITE_API_URL=${{ secrets.VITE_API_URL }} \
             --build-arg VITE_WS_URL=${{ secrets.VITE_WS_URL }} \
             .
 
       - name: Tag Image
-        run: docker tag ${{ env.ECR_REPOSITORY }}:latest ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+        run: |
+          docker tag ${{ env.ECR_REPOSITORY }}:latest \
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
 
       - name: Push Image
-        run: docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-
-      - name: Set Variable
-        id: set-vars
-        run: echo "image=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest" >> $GITHUB_OUTPUT
+        run: |
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
 
   deploy:
+    name: Deploy Frontend to ECS
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -66,16 +68,13 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Debug image output
-        run: echo "IMAGE=${{ needs.build.outputs.image }}"
-
-      - name: Render task definition
+      - name: Render task definition (inject image)
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: ${{ env.TASK_DEFINITION }}
           container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ needs.build.outputs.image }}
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
