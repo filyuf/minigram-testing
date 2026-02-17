@@ -13,7 +13,6 @@ export default function CreatePost() {
   const navigate = useNavigate()
   const username = localStorage.getItem("username")
 
-  // ✅ Cleanup preview URL biar nggak memory leak
   useEffect(() => {
     return () => {
       if (preview) URL.revokeObjectURL(preview)
@@ -24,13 +23,11 @@ export default function CreatePost() {
     const file = e.target.files[0]
     if (!file) return
 
-    // Validasi ukuran file (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError("Image size must be less than 5MB")
       return
     }
 
-    // ✅ revoke URL lama sebelum bikin yang baru
     if (preview) URL.revokeObjectURL(preview)
 
     setImageFile(file)
@@ -39,7 +36,6 @@ export default function CreatePost() {
   }
 
   const handleRemoveImage = () => {
-    // ✅ revoke saat remove
     if (preview) URL.revokeObjectURL(preview)
     setImageFile(null)
     setPreview(null)
@@ -87,7 +83,7 @@ export default function CreatePost() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} style={styles.form}>
-            {/* Image Upload Area */}
+            {/* Image Upload*/}
             <div style={styles.uploadSection}>
               {!preview ? (
                 <label htmlFor="image-upload" style={styles.uploadArea}>

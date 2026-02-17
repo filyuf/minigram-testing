@@ -17,23 +17,19 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Sync activeMenu dengan current location
   useEffect(() => {
     if (location.pathname === "/index") setActiveMenu("home")
     else if (location.pathname === "/create") setActiveMenu("create")
     else if (location.pathname.includes("/edit")) setActiveMenu("create")
   }, [location.pathname])
 
-  // Ambil notifikasi dan post detail dengan error handling
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const data = await getNotifications()
 
-        // DynamoDB fields: from_user, post_id, created_at
         const postIds = [...new Set((data || []).map(n => n.post_id).filter(Boolean))]
 
-        // Fetch detail post dengan Promise.allSettled (tidak throw jika 404)
         const results = await Promise.allSettled(
           postIds.map(id =>
             fetch(`${API}/posts/${id}`, {

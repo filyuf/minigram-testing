@@ -1,7 +1,7 @@
 const API = import.meta.env.VITE_API_URL
 const WS_URL = import.meta.env.VITE_WS_URL
 
-/* ================= HELPERS ================= */
+// Helper
 const getToken = () => localStorage.getItem("token")
 
 const authFetch = (url, options = {}) => {
@@ -26,7 +26,7 @@ const fileToBase64 = (file) =>
     reader.readAsDataURL(file)
   })
 
-/* ================= AUTH ================= */
+// Auth
 export const login = async (username, password) => {
   const res = await fetch(`${API}/auth/login`, {
     method: "POST",
@@ -50,7 +50,7 @@ export const register = async (username, email, password) => {
   return data
 }
 
-/* ================= POSTS ================= */
+// Posts
 export const getPosts = async () => {
   const token = localStorage.getItem("token")
   const res = await fetch(`${API}/posts`, {
@@ -103,13 +103,11 @@ export const deletePost = async (postId) => {
   return res.json()
 }
 
-/* ================= WEBSOCKET (COMMENTS) ================= */
-// 1 koneksi WS dipakai global
+// WebSocket
 let ws
 let pending = []
 
 export const connectWS = (onMessage) => {
-  // kalau sudah ada koneksi (OPEN / CONNECTING), jangan bikin baru
   if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
     return ws
   }
@@ -131,11 +129,11 @@ export const connectWS = (onMessage) => {
   }
 
   ws.onclose = () => {
-    // biarin; FE bisa reconnect dengan connectWS lagi kalau perlu
+    // optionally handle close, e.g. try reconnecting after a delay
   }
 
   ws.onerror = () => {
-    // optional: console.log("ws error")
+    // optionally handle errors
   }
 
   return ws
@@ -152,14 +150,8 @@ export const wsUnsubscribePost = (postId) => wsSend({ action: "unsubscribe", pos
 export const wsSendComment = ({ postId, text, fromUser }) =>
   wsSend({ action: "comment", postId, text, fromUser })
 
-// kalau masih ada file lama yang pakai sendComment, biar tetap jalan:
 export const sendComment = (payload) => wsSend({ action: "comment", ...payload })
 
-/* ================= COMMENTS REST ================= */
-/**
- * Butuh endpoint: GET /comments?postId=xxx
- * Kalau belum ada, CommentModal tetap bisa realtime (history kosong).
- */
 export const getComments = async (postId) => {
   const res = await authFetch(`${API}/comments?postId=${encodeURIComponent(postId)}`, {
     method: "GET",
@@ -168,7 +160,7 @@ export const getComments = async (postId) => {
   return res.json()
 }
 
-/* ================= NOTIFICATIONS ================= */
+// Notifications
 export const getNotifications = async () => {
   const res = await authFetch(`${API}/notif`)
   if (!res.ok) throw new Error("Failed to load notifications")
@@ -184,7 +176,6 @@ export const sendLike = async (postId, toUser) => {
   return res.json()
 }
 
-// ✅ FIX: notif kamu dari DynamoDB kemungkinan snake_case: post_id, from_user
 export const checkLike = async (postId, username) => {
   const notifs = await getNotifications()
   const liked =

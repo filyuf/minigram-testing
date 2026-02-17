@@ -21,9 +21,8 @@ export default function Login() {
       const res = await login(username, password)
 
       if (res.token) {
-        // simpan token dan username
         localStorage.setItem("token", res.token)
-        localStorage.setItem("username", username) // username dari input
+        localStorage.setItem("username", username) 
         navigate("/index")
       } else {
         setError(res.message || "Login failed")

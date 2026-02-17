@@ -2,8 +2,8 @@ import { useEffect, useState } from "react"
 import Sidebar from "../components/Sidebar"
 import PostCard from "../components/PostCard"
 import NotificationModal from "../components/NotificationModal"
-import CommentModal from "../components/CommentModal" // ✅ NEW
-import { getPosts, deletePost, connectWS } from "../services" // ✅ NEW: connectWS
+import CommentModal from "../components/CommentModal" 
+import { getPosts, deletePost, connectWS } from "../services"
 import { useNavigate } from "react-router-dom"
 import { Icon } from "@iconify/react"
 
@@ -37,12 +37,10 @@ export default function Home() {
 
     loadPosts()
 
-    // ✅ connect ws sekali (buat comment realtime)
     connectWS((msg) => {
       setLiveEvents((prev) => [msg, ...prev].slice(0, 200))
     })
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadPosts = async () => {
@@ -58,7 +56,6 @@ export default function Home() {
     setPosts((prev) => prev.filter((p) => p.id !== id))
   }
 
-  // dipanggil dari PostCard saat user klik tombol delete
   const handleRequestDelete = (id) => {
     setConfirmDelete({
       open: true,
@@ -149,7 +146,6 @@ export default function Home() {
         />
       )}
 
-      {/* ✅ Modal Confirm Delete */}
       {confirmDelete.open && (
         <div style={modalStyles.overlay} onClick={handleCancelDelete}>
           <div style={modalStyles.modal} onClick={(e) => e.stopPropagation()}>

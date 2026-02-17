@@ -28,7 +28,6 @@ export default function Edit() {
     setLoading(true)
     setError("")
 
-    // ✅ kirim caption aja
     updatePost(id, caption)
       .then(() => {
         setSuccess("Post updated successfully!")
@@ -64,7 +63,6 @@ export default function Edit() {
                 />
               </div>
 
-              {/* ✅ Image hanya tampil, tidak bisa diganti */}
               {existingImage && (
                 <div style={styles.field}>
                   <label style={styles.label}>Image (cannot be changed)</label>
@@ -93,7 +91,6 @@ export default function Edit() {
   )
 }
 
-/* ===== UI COMPONENTS ===== */
 function Message({ type, text }) {
   const color = type === "error" ? "#fecaca" : "#86efac"
   const bg = type === "error" ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)"
@@ -115,7 +112,6 @@ function Message({ type, text }) {
   )
 }
 
-/* ===== STYLES (pakai punyamu, ini cuma minimal yang kepake) ===== */
 const styles = {
   container: {
     display: "flex",

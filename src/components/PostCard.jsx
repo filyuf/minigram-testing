@@ -21,7 +21,7 @@ export default function PostCard({
   currentUser,
   onDeleted,
   onRequestDelete,
-  onOpenComments, // ✅ NEW
+  onOpenComments,
 }) {
   const navigate = useNavigate()
   const [boom, setBoom] = useState(false)
@@ -72,7 +72,6 @@ export default function PostCard({
     navigate(`/${post.id}/edit`)
   }
 
-  // ✅ Tidak delete di sini. Cuma buka modal di parent.
   const handleDelete = () => {
     setShowMenu(false)
     onRequestDelete?.(post.id)
@@ -101,13 +100,13 @@ export default function PostCard({
             {showMenu && (
               <div style={styles.menu}>
                 <button onClick={handleEdit} style={styles.menuItem}>
-                  ✏️ Edit
+                  Edit
                 </button>
                 <button
                   onClick={handleDelete}
                   style={{ ...styles.menuItem, color: "#ff6b6b" }}
                 >
-                  🗑 Delete
+                  Delete
                 </button>
               </div>
             )}
@@ -131,7 +130,7 @@ export default function PostCard({
             />
           </button>
 
-          {/* ✅ Comment icon */}
+          {/* Comment icon */}
           <button onClick={() => onOpenComments?.(post.id)} style={styles.btn}>
             <Icon icon="mdi:comment-outline" style={{ fontSize: 26, color: "white" }} />
           </button>

@@ -5,12 +5,6 @@ on:
     branches:
       - main
 
-env:
-  ECR_REGISTRY: 031795911969.dkr.ecr.us-east-1.amazonaws.com
-  ECR_REPOSITORY: lks-minigram
-  TASK_DEFINITION: lks-td-minigram.json
-  CONTAINER_NAME: lks-container
-
 permissions:
   id-token: write
   contents: read
@@ -24,33 +18,19 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+        run: # configure AWS credentials"
 
       - name: Login to Amazon ECR
-        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+        run: # Login to ECR"
 
       - name: Build Image
-        run: |
-          docker build \
-            -f ./Dockerfile \
-            -t ${{ env.ECR_REPOSITORY }}:latest \
-            --build-arg VITE_API_URL=${{ secrets.VITE_API_URL }} \
-            --build-arg VITE_WS_URL=${{ secrets.VITE_WS_URL }} \
-            .
+        run: # Build Docker image"
 
       - name: Tag Image
-        run: |
-          docker tag ${{ env.ECR_REPOSITORY }}:latest \
-            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+        run: # Tag Docker image"
 
       - name: Push Image
-        run: |
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+        run: # Push image to ECR"
 
   deploy:
     name: Deploy Frontend to ECS
@@ -61,14 +41,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+        run: # Configure AWS credentials
 
-      - name: Render task definition (inject image)
+      - name: Render task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
